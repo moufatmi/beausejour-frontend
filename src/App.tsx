@@ -34,7 +34,7 @@ function App() {
     setHasSearched(true);
 
     try {
-      const response = await fetch('http://beausejour-backend.vercel.app/search', {
+      const response = await fetch('https://beausejour-backend-moufatmi-moussabs-projects.vercel.app/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
