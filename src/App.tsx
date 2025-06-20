@@ -34,7 +34,7 @@ function App() {
     setHasSearched(true);
 
     try {
-      const response = await fetch('http://beausejour-backend.vercel.app', {
+      const response = await fetch('http://beausejour-backend.vercel.app/search', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -68,7 +68,11 @@ function App() {
     } catch (err) {
       console.error('Search error:', err);
       if (err instanceof Error) {
-        setError(err.message);
+        if (err.message.includes('Failed to fetch') || err.message.includes('NetworkError')) {
+          setError('Unable to connect to the flight search service. Please check your connection and try again.');
+        } else {
+          setError(err.message);
+        }
       } else {
         setError('Unable to connect to the flight search service. Please check your connection and try again.');
       }
