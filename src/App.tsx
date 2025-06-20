@@ -34,7 +34,7 @@ function App() {
     setHasSearched(true);
 
     try {
-      const response = await fetch('http://localhost:3000/search', {
+      const response = await fetch('http://beausejour-backend.vercel.app', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
