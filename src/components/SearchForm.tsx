@@ -62,6 +62,8 @@ export const SearchForm: React.FC<SearchFormProps> = ({ onSearch, isLoading }) =
     setFormData(prev => ({ ...prev, preferredAirlines: selected }));
   };
 
+  const isUppercase = (value: string) => /^[A-Z]*$/.test(value);
+
   return (
     <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full">
       <div className="text-center mb-8">
@@ -81,9 +83,9 @@ export const SearchForm: React.FC<SearchFormProps> = ({ onSearch, isLoading }) =
           <input
             type="text"
             value={formData.origin}
-            onChange={(e) => handleInputChange('origin', e.target.value)}
-            placeholder="Enter origin airport code, e.g. CMN"
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors duration-200"
+            onChange={(e) => handleInputChange('origin', e.target.value.toUpperCase())}
+            placeholder="Enter origin airport code, e.g. OUD"
+            className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors duration-200 ${!isUppercase(formData.origin) && formData.origin ? 'border-red-500' : 'border-gray-300'}`}
             required
           />
         </div>
@@ -96,9 +98,9 @@ export const SearchForm: React.FC<SearchFormProps> = ({ onSearch, isLoading }) =
           <input
             type="text"
             value={formData.destination}
-            onChange={(e) => handleInputChange('destination', e.target.value)}
+            onChange={(e) => handleInputChange('destination', e.target.value.toUpperCase())}
             placeholder="Enter destination airport code, e.g. CDG"
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors duration-200"
+            className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors duration-200 ${!isUppercase(formData.destination) && formData.destination ? 'border-red-500' : 'border-gray-300'}`}
             required
           />
         </div>
