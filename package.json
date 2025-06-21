@@ -8,9 +8,6 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "predeploy": "npm run build",
-    "deploy": "gh-pages -d dist",
-    "update": "git add . && git commit -m 'update' && git push && npm run build && npm run deploy",
     "homepage": "https://beausejour-frontend.github.io/beausejour-frontend/"
   },
   "dependencies": {

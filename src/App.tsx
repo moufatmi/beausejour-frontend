@@ -33,8 +33,8 @@ function App() {
     setError(null);
     setHasSearched(true);
 
-    // Use environment variable for the API URL
-    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+    // Use the deployed backend URL for GitHub Pages
+    const apiUrl = 'https://beausejour-backend-ed7irxa35-moussabs-projects.vercel.app';
 
     try {
       const response = await fetch(`${apiUrl}/search`, {
