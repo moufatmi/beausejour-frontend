@@ -37,7 +37,7 @@ function App() {
     const apiUrl = 'https://beausejour-backend-ed7irxa35-moussabs-projects.vercel.app';
 
     try {
-      const response = await fetch(`${apiUrl}/search`, {
+      const response = await fetch("https://beausejour-backend.vercel.app/search/search", {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
