@@ -33,8 +33,11 @@ function App() {
     setError(null);
     setHasSearched(true);
 
+    // Use environment variable for the API URL
+    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+
     try {
-      const response = await fetch('https://beausejour-backend-moufatmi-moussabs-projects.vercel.app/', {
+      const response = await fetch(`${apiUrl}/search`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
