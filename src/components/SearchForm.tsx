@@ -61,16 +61,16 @@ export const SearchForm: React.FC<SearchFormProps> = ({ onSearch, isLoading }) =
   const isUppercase = (value: string) => /^[A-Z]*$/.test(value);
 
   return (
-    <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full">
-      <div className="text-center mb-8">
+    <div className="bg-white rounded-2xl shadow-xl p-6 sm:p-8 max-w-md w-full">
+      <div className="text-center mb-6">
         <div className="flex items-center justify-center mb-4">
-          <Plane className="w-8 h-8 text-primary mr-3" />
-          <h1 className="text-3xl font-bold text-gray-800">Beausejour Voyage</h1>
+          <Plane className="w-7 h-7 sm:w-8 sm:h-8 text-primary mr-3" />
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">Beausejour Voyage</h1>
         </div>
-        <p className="text-gray-600">Find your perfect flight</p>
+        <p className="text-gray-600 text-sm sm:text-base">Find your perfect flight</p>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
         <div>
           <label className="block text-sm font-semibold text-gray-700 mb-2">
             <MapPin className="w-4 h-4 inline mr-2" />
@@ -165,7 +165,7 @@ export const SearchForm: React.FC<SearchFormProps> = ({ onSearch, isLoading }) =
         <button
           type="submit"
           disabled={isLoading}
-          className="w-full bg-gradient-to-r from-primary to-cyan-600 text-white font-semibold py-4 px-6 rounded-lg hover:from-primary hover:to-cyan-700 transform hover:scale-105 transition-all duration-200 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+          className="w-full bg-gradient-to-r from-primary to-cyan-600 text-white font-semibold py-3 px-6 rounded-lg hover:from-primary hover:to-cyan-700 transform hover:scale-105 transition-all duration-200 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none text-base sm:text-lg"
         >
           {isLoading ? (
             <>
