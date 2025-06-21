@@ -47,8 +47,6 @@ function App() {
           destination: searchData.destination,
           date: searchData.date,
           adults: searchData.adults,
-          minPrice: searchData.minPrice,
-          maxPrice: searchData.maxPrice,
           preferredAirlines: searchData.preferredAirlines,
           stops: searchData.stops
         })        

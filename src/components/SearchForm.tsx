@@ -11,8 +11,6 @@ export interface SearchData {
   destination: string;
   date: string;
   adults: number;
-  minPrice?: number;
-  maxPrice?: number;
   preferredAirlines?: string[];
   stops?: string;
 }
@@ -39,8 +37,6 @@ export const SearchForm: React.FC<SearchFormProps> = ({ onSearch, isLoading }) =
     destination: '',
     date: '',
     adults: 1,
-    minPrice: undefined,
-    maxPrice: undefined,
     preferredAirlines: [],
     stops: '',
   });
@@ -132,35 +128,6 @@ export const SearchForm: React.FC<SearchFormProps> = ({ onSearch, isLoading }) =
             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors duration-200"
             required
           />
-        </div>
-
-        <div className="flex gap-4">
-          <div className="flex-1">
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              <DollarSign className="w-4 h-4 inline mr-2" />Min Price
-            </label>
-            <input
-              type="number"
-              min="0"
-              value={formData.minPrice ?? ''}
-              onChange={e => handleInputChange('minPrice', e.target.value ? parseInt(e.target.value) : undefined)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors duration-200"
-              placeholder="Min"
-            />
-          </div>
-          <div className="flex-1">
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              <DollarSign className="w-4 h-4 inline mr-2" />Max Price
-            </label>
-            <input
-              type="number"
-              min="0"
-              value={formData.maxPrice ?? ''}
-              onChange={e => handleInputChange('maxPrice', e.target.value ? parseInt(e.target.value) : undefined)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors duration-200"
-              placeholder="Max"
-            />
-          </div>
         </div>
 
         <div>
