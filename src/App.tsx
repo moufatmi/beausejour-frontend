@@ -187,9 +187,9 @@ function App() {
                     <strong>Fix:</strong> 05 36 70 70 26
                   </a>
                 </div>
-                <a href="mailto:beausejour.voyages@gmail.com" className="flex items-center justify-center gap-2 hover:text-white transition-colors">
+                <a href="mailto:contact@beausejourvoyage.com" className="flex items-center justify-center gap-2 hover:text-white transition-colors">
                   <Mail className="w-4 h-4" />
-                  <strong>Email:</strong> beausejour.voyages@gmail.com
+                  <strong>Email:</strong> contact@beausejourvoyage.com
                 </a>
                 <p className="text-center"><strong>Service client:</strong> 24h/24 et 7j/7</p>
               </div>
