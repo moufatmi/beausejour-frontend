@@ -11,18 +11,8 @@ export interface SearchData {
   destination: string;
   date: string;
   adults: number;
-  preferredAirlines?: string[];
   stops?: string;
 }
-
-const AIRLINES = [
-  { code: 'AT', name: 'Royal Air Maroc' },
-  { code: 'AF', name: 'Air France' },
-  { code: 'LH', name: 'Lufthansa' },
-  { code: 'BA', name: 'British Airways' },
-  { code: 'EK', name: 'Emirates' },
-  // Add more as needed
-];
 
 const STOPS_OPTIONS = [
   { value: '', label: 'Any' },
@@ -37,7 +27,6 @@ export const SearchForm: React.FC<SearchFormProps> = ({ onSearch, isLoading }) =
     destination: '',
     date: '',
     adults: 1,
-    preferredAirlines: [],
     stops: '',
   });
 
@@ -46,16 +35,11 @@ export const SearchForm: React.FC<SearchFormProps> = ({ onSearch, isLoading }) =
     onSearch(formData);
   };
 
-  const handleInputChange = (field: keyof SearchData, value: string | number | string[]) => {
+  const handleInputChange = (field: keyof SearchData, value: string | number) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
     }));
-  };
-
-  const handleAirlinesChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const selected = Array.from(e.target.selectedOptions, option => option.value);
-    setFormData(prev => ({ ...prev, preferredAirlines: selected }));
   };
 
   const isUppercase = (value: string) => /^[A-Z]*$/.test(value);
@@ -132,28 +116,11 @@ export const SearchForm: React.FC<SearchFormProps> = ({ onSearch, isLoading }) =
 
         <div>
           <label className="block text-sm font-semibold text-gray-700 mb-2">
-            <Filter className="w-4 h-4 inline mr-2" />Preferred Airlines
-          </label>
-          <select
-            multiple
-            value={formData.preferredAirlines}
-            onChange={handleAirlinesChange}
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors duration-200 h-28"
-          >
-            {AIRLINES.map(airline => (
-              <option key={airline.code} value={airline.code}>{airline.name} ({airline.code})</option>
-            ))}
-          </select>
-          <div className="text-xs text-gray-400 mt-1">Hold Ctrl (Windows) or Cmd (Mac) to select multiple airlines.</div>
-        </div>
-
-        <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-2">
             <Filter className="w-4 h-4 inline mr-2" />Number of Stops
           </label>
           <select
             value={formData.stops}
-            onChange={e => handleInputChange('stops', e.target.value)}
+            onChange={(e) => handleInputChange('stops', e.target.value)}
             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors duration-200"
           >
             {STOPS_OPTIONS.map(opt => (

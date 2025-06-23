@@ -30,10 +30,11 @@ function App() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          origin: searchData.origin.toUpperCase(),         // Convert to uppercase
-          destination: searchData.destination.toUpperCase(),
+          origin: searchData.origin,
+          destination: searchData.destination,
           date: searchData.date,
           adults: searchData.adults,
+          stops: searchData.stops
         }),
       });
   
