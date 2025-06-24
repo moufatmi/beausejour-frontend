@@ -43,7 +43,7 @@ function App() {
     setFlights([]);
     setHotels([]);
     try {
-      const response = await fetch('https://beausejour-backend.vercel.app/search', {
+      const response = await fetch('http://localhost:3000/search', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
