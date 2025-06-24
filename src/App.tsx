@@ -2,6 +2,8 @@ import React, { useState, lazy, Suspense } from 'react';
 import { SearchForm, SearchData } from './components/SearchForm';
 import Navigation from './components/Navigation';
 import { Facebook, Linkedin, Phone, Mail } from 'lucide-react';
+import HotelSearchForm from './components/HotelSearchForm';
+import HotelResults from './components/HotelResults';
 const FlightResults = lazy(() => import('./components/FlightResults').then(module => ({ default: module.FlightResults })));
 
 interface Flight {
@@ -12,17 +14,29 @@ interface Flight {
   duration: string;
 }
 
+interface Hotel {
+  name: string;
+  address?: string;
+  geoCode?: {
+    latitude: number;
+    longitude: number;
+  };
+}
+
 function App() {
   const [flights, setFlights] = useState<Flight[]>([]);
+  const [hotels, setHotels] = useState<Hotel[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [hasSearched, setHasSearched] = useState(false);
+  const [searchType, setSearchType] = useState<'flight' | 'hotel'>('flight');
 
   const handleSearch = async (searchData: SearchData) => {
     setIsLoading(true);
     setError(null);
     setHasSearched(true);
-  
+    setFlights([]);
+    setHotels([]);
     try {
       const response = await fetch('https://beausejour-backend.vercel.app/search', {
         method: 'POST',
@@ -34,16 +48,14 @@ function App() {
           destination: searchData.destination,
           date: searchData.date,
           adults: searchData.adults,
+          preferredAirlines: searchData.preferredAirlines,
           stops: searchData.stops
         }),
       });
-  
       if (!response.ok) {
         throw new Error(`Failed to search flights: ${response.status} ${response.statusText}`);
       }
-  
       const data = await response.json();
-  
       if (data.flights && Array.isArray(data.flights)) {
         setFlights(data.flights);
       } else if (Array.isArray(data)) {
@@ -63,7 +75,44 @@ function App() {
       setIsLoading(false);
     }
   };
-  
+
+  const handleHotelSearch = async (cityCode: string) => {
+    setIsLoading(true);
+    setError(null);
+    setHasSearched(true);
+    setFlights([]);
+    setHotels([]);
+    try {
+      const response = await fetch('https://beausejour-backend.vercel.app/hotel-search', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ cityCode }),
+      });
+      if (!response.ok) {
+        throw new Error(`Failed to search hotels: ${response.status} ${response.statusText}`);
+      }
+      const data = await response.json();
+      if (data.hotels && Array.isArray(data.hotels)) {
+        setHotels(data.hotels);
+      } else if (Array.isArray(data)) {
+        setHotels(data);
+      } else {
+        setHotels([]);
+      }
+    } catch (err) {
+      console.error('Hotel search error:', err);
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('Unable to connect to the hotel search service. Please check your connection and try again.');
+      }
+      setHotels([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary via-cyan-700 to-cyan-500 relative overflow-hidden">
@@ -80,6 +129,21 @@ function App() {
       <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Accueil Section */}
         <section id="accueil" className="min-h-screen flex flex-col items-center justify-center gap-8 pt-20">
+          {/* Tabs for switching search type */}
+          <div className="flex gap-4 mb-6">
+            <button
+              className={`px-4 py-2 rounded-t-lg font-semibold focus:outline-none transition-colors ${searchType === 'flight' ? 'bg-white text-primary shadow' : 'bg-cyan-900 text-cyan-100 hover:bg-cyan-800'}`}
+              onClick={() => { setSearchType('flight'); setHasSearched(false); setError(null); }}
+            >
+              Vols
+            </button>
+            <button
+              className={`px-4 py-2 rounded-t-lg font-semibold focus:outline-none transition-colors ${searchType === 'hotel' ? 'bg-white text-primary shadow' : 'bg-cyan-900 text-cyan-100 hover:bg-cyan-800'}`}
+              onClick={() => { setSearchType('hotel'); setHasSearched(false); setError(null); }}
+            >
+              Hôtels
+            </button>
+          </div>
           
           {!hasSearched && (
             <div className="text-center px-4 max-w-3xl">
@@ -95,19 +159,30 @@ function App() {
 
           {/* Search Form */}
           <div className="w-full lg:w-auto lg:flex-shrink-0">
-            <SearchForm onSearch={handleSearch} isLoading={isLoading} />
+            {searchType === 'flight' ? (
+              <SearchForm onSearch={handleSearch} isLoading={isLoading} />
+            ) : (
+              <HotelSearchForm onSubmit={handleHotelSearch} />
+            )}
           </div>
 
           {/* Results */}
           {hasSearched && (
-            <div className="flex-1 w-full lg:max-w-none">
-              <Suspense fallback={<div className="text-white text-center p-8">Loading results...</div>}>
-                <FlightResults 
-                  flights={flights} 
-                  isLoading={isLoading} 
-                  error={error} 
-                />
-              </Suspense>
+            <div className="flex-1 w-full lg:max-w-none mt-6">
+              {isLoading && <div className="text-white text-center p-8">Chargement des résultats...</div>}
+              {error && <div className="text-red-500 text-center p-4 bg-white/20 rounded mb-4">{error}</div>}
+              {searchType === 'flight' && !isLoading && !error && (
+                <Suspense fallback={<div className="text-white text-center p-8">Loading results...</div>}>
+                  <FlightResults 
+                    flights={flights} 
+                    isLoading={isLoading} 
+                    error={error} 
+                  />
+                </Suspense>
+              )}
+              {searchType === 'hotel' && !isLoading && !error && (
+                <HotelResults hotels={hotels} />
+              )}
             </div>
           )}
         </section>
