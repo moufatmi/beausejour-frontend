@@ -33,7 +33,7 @@ function App() {
 
 
 
-app.options('*', cors()); // allow preflight for all routes
+
 
 
   const handleSearch = async (searchData: SearchData) => {
