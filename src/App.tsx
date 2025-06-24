@@ -2,6 +2,8 @@ import React, { useState, lazy, Suspense } from 'react';
 import { SearchForm, SearchData } from './components/SearchForm';
 import Navigation from './components/Navigation';
 import { Facebook, Linkedin, Phone, Mail } from 'lucide-react';
+import HotelSearchForm from './components/HotelSearchForm';
+import HotelResults from './components/HotelResults';
 const FlightResults = lazy(() => import('./components/FlightResults').then(module => ({ default: module.FlightResults })));
 
 interface Flight {
@@ -17,6 +19,9 @@ function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [hasSearched, setHasSearched] = useState(false);
+  const [hotels, setHotels] = useState([]);
+  const [hotelError, setHotelError] = useState('');
+  const [hotelHasSearched, setHotelHasSearched] = useState(false);
 
   const handleSearch = async (searchData: SearchData) => {
     setIsLoading(true);
@@ -62,6 +67,30 @@ function App() {
     }
   };
 
+  const handleHotelSearch = async (cityCode: string) => {
+    setHotelError('');
+    setHotelHasSearched(true);
+    setHotels([]);
+    try {
+      const res = await fetch('http://localhost:3000/hotel-search', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cityCode })
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        setHotelError(err.error || 'Error searching hotels');
+        setHotels([]);
+        return;
+      }
+      const data = await res.json();
+      setHotels(data);
+    } catch (e) {
+      setHotelError('Network error');
+      setHotels([]);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary via-cyan-700 to-cyan-500 relative overflow-hidden">
       {/* Navigation */}
@@ -104,6 +133,19 @@ function App() {
                   error={error} 
                 />
               </Suspense>
+            </div>
+          )}
+        </section>
+
+        {/* Hotel Search Section */}
+        <section id="hotel-search" className="min-h-screen flex flex-col items-center justify-center gap-8 pt-20">
+          <div className="w-full lg:w-auto lg:flex-shrink-0">
+            <HotelSearchForm onSubmit={handleHotelSearch} />
+          </div>
+          {hotelHasSearched && (
+            <div className="flex-1 w-full lg:max-w-none">
+              {hotelError && <div className="text-red-500 text-center">{hotelError}</div>}
+              <HotelResults hotels={hotels} />
             </div>
           )}
         </section>
