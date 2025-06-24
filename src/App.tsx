@@ -31,12 +31,7 @@ function App() {
   const [hasSearched, setHasSearched] = useState(false);
   const [searchType, setSearchType] = useState<'flight' | 'hotel'>('flight');
 
-const cors = require('cors');
-app.use(cors({
-  origin: ['https://ticket.beausejourvoyage.com', 'http://localhost:5173'], // add your domains here
-  methods: ['GET', 'POST', 'OPTIONS'],
-  credentials: true // if you use cookies/auth
-}));
+
 
 app.options('*', cors()); // allow preflight for all routes
 
@@ -113,7 +108,7 @@ app.options('*', cors()); // allow preflight for all routes
       }
     } catch (err) {
       console.error('Hotel search error:', err);
-      if (err instanceof Error) {
+      if (err instanceof Error) {   
         setError(err.message);
       } else {
         setError('Unable to connect to the hotel search service. Please check your connection and try again.');
