@@ -80,7 +80,7 @@ function App() {
       setIsLoading(false);
     }
   };
-
+  
   const handleHotelSearch = async (cityCode: string) => {
     setIsLoading(true);
     setError(null);
@@ -88,7 +88,7 @@ function App() {
     setFlights([]);
     setHotels([]);
     try {
-      const response = await fetch('http://localhost:3000/hotel-search', {
+      const response = await fetch('https://beausejour-backend.vercel.app/search', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -164,7 +164,7 @@ function App() {
           {/* Search Form */}
           <div className="w-full lg:w-auto lg:flex-shrink-0">
             {searchType === 'flight' ? (
-              <SearchForm onSearch={handleSearch} isLoading={isLoading} />
+            <SearchForm onSearch={handleSearch} isLoading={isLoading} />
             ) : (
               <HotelSearchForm onSubmit={handleHotelSearch} />
             )}
@@ -176,13 +176,13 @@ function App() {
               {isLoading && <div className="text-white text-center p-8">Chargement des résultats...</div>}
               {error && <div className="text-red-500 text-center p-4 bg-white/20 rounded mb-4">{error}</div>}
               {searchType === 'flight' && !isLoading && !error && (
-                <Suspense fallback={<div className="text-white text-center p-8">Loading results...</div>}>
-                  <FlightResults 
-                    flights={flights} 
-                    isLoading={isLoading} 
-                    error={error} 
-                  />
-                </Suspense>
+              <Suspense fallback={<div className="text-white text-center p-8">Loading results...</div>}>
+                <FlightResults 
+                  flights={flights} 
+                  isLoading={isLoading} 
+                  error={error} 
+                />
+              </Suspense>
               )}
               {searchType === 'hotel' && !isLoading && !error && (
                 <HotelResults hotels={hotels} />
