@@ -1,5 +1,5 @@
-import React from 'react';
-import { Clock, Euro, Plane, MapPin, ArrowRight, Hash } from 'lucide-react';
+import React, { useState } from 'react';
+import { Clock, Euro, Plane, MapPin, ArrowRight, Hash, ChevronDown, ChevronUp } from 'lucide-react';
 
 interface Segment {
   airline: string;
@@ -42,6 +42,8 @@ function formatDuration(duration: string) {
 }
 
 export const FlightCard: React.FC<FlightCardProps> = ({ flight }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+
   return (
     <div className="bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow duration-300 p-4 sm:p-6 border border-gray-100">
       <div className="flex flex-col sm:flex-row justify-between sm:items-center mb-4 gap-2">
@@ -90,24 +92,74 @@ export const FlightCard: React.FC<FlightCardProps> = ({ flight }) => {
           </div>
         </div>
       </div>
-      {/* Segments - better for mobile */}
-      <div className="mt-4">
-        <h3 className="font-semibold text-gray-700 mb-2 text-sm sm:text-base">Flight Segments:</h3>
-        <div className="space-y-2">
-          {flight.segments.map((seg, idx) => (
-            <div key={idx} className="bg-gray-50 p-2 rounded-lg text-xs">
-              <div className="grid grid-cols-2 gap-x-2 gap-y-1">
-                <div className="font-bold col-span-2">{seg.airline} {seg.flightNumber}</div>
-                <div><span className="font-semibold">From:</span> {seg.departureAirport}</div>
-                <div><span className="font-semibold">At:</span> {formatTime(seg.departureTime)}</div>
-                <div><span className="font-semibold">To:</span> {seg.arrivalAirport}</div>
-                <div><span className="font-semibold">At:</span> {formatTime(seg.arrivalTime)}</div>
-                <div className="col-span-2"><span className="font-semibold">Duration:</span> {formatDuration(seg.duration)}</div>
-              </div>
+      
+      {/* Segments Accordion */}
+      {flight.segments && flight.segments.length > 0 && (
+        <div className="mt-4 border-t border-gray-100 pt-4">
+          <button 
+            onClick={() => setIsExpanded(!isExpanded)}
+            className="w-full flex items-center justify-between text-gray-600 hover:text-primary transition-colors focus:outline-none"
+          >
+            <span className="font-semibold text-sm sm:text-base flex items-center gap-2">
+              Flight Details & Segments
+              <span className="bg-primary/10 text-primary text-xs px-2 py-0.5 rounded-full">
+                {flight.segments.length} segment{flight.segments.length > 1 ? 's' : ''}
+              </span>
+            </span>
+            {isExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+          </button>
+          
+          <div className={`overflow-hidden transition-all duration-300 ease-in-out ${isExpanded ? 'max-h-[1000px] opacity-100 mt-4' : 'max-h-0 opacity-0'}`}>
+            <div className="space-y-3 relative pl-4 sm:pl-6 border-l-2 border-primary/20 ml-2">
+              {flight.segments.map((seg, idx) => (
+                <div key={idx} className="relative bg-gray-50 p-3 sm:p-4 rounded-xl text-sm border border-gray-100 hover:border-primary/30 transition-colors shadow-sm">
+                  {/* Timeline dot */}
+                  <div className="absolute w-3 h-3 bg-primary rounded-full -left-[23px] sm:-left-[31px] top-1/2 transform -translate-y-1/2 border-2 border-white shadow-sm"></div>
+                  
+                  <div className="flex flex-col gap-3">
+                    <div className="flex justify-between items-center border-b border-gray-200 pb-2">
+                      <div className="font-bold text-gray-800 flex items-center gap-2">
+                        <Plane className="w-4 h-4 text-primary" />
+                        {seg.airline} <span className="text-gray-500 font-normal">#{seg.flightNumber}</span>
+                      </div>
+                      <div className="text-xs font-semibold bg-gray-200 text-gray-700 px-2 py-1 rounded-full flex items-center gap-1">
+                        <Clock className="w-3 h-3" />
+                        {formatDuration(seg.duration)}
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <div className="text-xs text-gray-500 mb-1 uppercase tracking-wider font-semibold">Departure</div>
+                        <div className="font-bold text-lg text-gray-800">{formatTime(seg.departureTime)}</div>
+                        <div className="text-gray-600 flex items-center gap-1">
+                          <MapPin className="w-3 h-3 text-primary" />
+                          <span className="font-medium">{seg.departureAirport}</span>
+                        </div>
+                        <div className="text-xs text-gray-400 mt-0.5">{formatDate(seg.departureTime)}</div>
+                      </div>
+                      
+                      <div className="hidden sm:flex items-center justify-center">
+                        <ArrowRight className="w-5 h-5 text-gray-300" />
+                      </div>
+                      
+                      <div className="sm:text-right mt-2 sm:mt-0">
+                        <div className="text-xs text-gray-500 mb-1 uppercase tracking-wider font-semibold">Arrival</div>
+                        <div className="font-bold text-lg text-gray-800">{formatTime(seg.arrivalTime)}</div>
+                        <div className="text-gray-600 flex items-center sm:justify-end gap-1">
+                          <MapPin className="w-3 h-3 text-teal-500" />
+                          <span className="font-medium">{seg.arrivalAirport}</span>
+                        </div>
+                        <div className="text-xs text-gray-400 mt-0.5">{formatDate(seg.arrivalTime)}</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
-          ))}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };

@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Search, Plane, MapPin, Calendar, Users, DollarSign, Filter } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Search, Plane, MapPin, Calendar, Users, DollarSign, Filter, AlertCircle, X } from 'lucide-react';
 
 interface SearchFormProps {
   onSearch: (searchData: SearchData) => void;
@@ -31,6 +31,17 @@ const STOPS_OPTIONS = [
   { value: '2+', label: '2+ stops' },
 ];
 
+const POPULAR_AIRPORTS = [
+  { code: 'CMN', name: 'Casablanca' },
+  { code: 'OUD', name: 'Oujda' },
+  { code: 'RBA', name: 'Rabat' },
+  { code: 'RAK', name: 'Marrakech' },
+  { code: 'CDG', name: 'Paris CDG' },
+  { code: 'ORY', name: 'Paris Orly' },
+  { code: 'MAD', name: 'Madrid' },
+  { code: 'BCN', name: 'Barcelona' },
+];
+
 export const SearchForm: React.FC<SearchFormProps> = ({ onSearch, isLoading }) => {
   const [formData, setFormData] = useState<SearchData>({
     origin: '',
@@ -40,9 +51,26 @@ export const SearchForm: React.FC<SearchFormProps> = ({ onSearch, isLoading }) =
     preferredAirlines: [],
     stops: '',
   });
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (error) {
+      const timer = setTimeout(() => setError(''), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [error]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!isUppercase(formData.origin) || !isUppercase(formData.destination)) {
+      setError('Airport codes must be letters only.');
+      return;
+    }
+    if (formData.origin.length !== 3 || formData.destination.length !== 3) {
+      setError('Airport codes must be exactly 3 letters.');
+      return;
+    }
+    setError('');
     onSearch(formData);
   };
 
@@ -61,7 +89,19 @@ export const SearchForm: React.FC<SearchFormProps> = ({ onSearch, isLoading }) =
   const isUppercase = (value: string) => /^[A-Z]*$/.test(value);
 
   return (
-    <div className="bg-white rounded-2xl shadow-xl p-6 sm:p-8 max-w-md w-full">
+    <div className="bg-white rounded-2xl shadow-xl p-6 sm:p-8 max-w-md w-full relative">
+      {/* Floating Error Notification */}
+      <div className={`absolute top-4 left-0 right-0 px-4 z-50 transition-all duration-300 transform ${error ? 'translate-y-0 opacity-100' : '-translate-y-4 opacity-0 pointer-events-none'}`}>
+        <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-xl shadow-lg flex items-center justify-between">
+          <div className="flex items-center">
+            <AlertCircle className="w-5 h-5 mr-2 flex-shrink-0" />
+            <span className="text-sm font-medium">{error}</span>
+          </div>
+          <button onClick={() => setError('')} className="text-red-400 hover:text-red-600 focus:outline-none">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
       <div className="text-center mb-6">
         <div className="flex items-center justify-center mb-4">
           <Plane className="w-7 h-7 sm:w-8 sm:h-8 text-primary mr-3" />
@@ -73,61 +113,85 @@ export const SearchForm: React.FC<SearchFormProps> = ({ onSearch, isLoading }) =
       <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
         <div>
           <label className="block text-sm font-semibold text-gray-700 mb-2">
-            <MapPin className="w-4 h-4 inline mr-2" />
             From
           </label>
-          <input
-            type="text"
-            value={formData.origin}
-            onChange={(e) => handleInputChange('origin', e.target.value.toUpperCase())}
-            placeholder="Enter origin airport code, e.g. OUD"
-            className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors duration-200 ${!isUppercase(formData.origin) && formData.origin ? 'border-red-500' : 'border-gray-300'}`}
-            required
-          />
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <MapPin className="w-5 h-5 text-gray-400" />
+            </div>
+            <input
+              type="text"
+              value={formData.origin}
+              onChange={(e) => handleInputChange('origin', e.target.value.toUpperCase())}
+              placeholder="e.g. CMN, OUD, CDG"
+              list="airports"
+              className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors duration-200 ${!isUppercase(formData.origin) && formData.origin ? 'border-red-500' : 'border-gray-300'}`}
+              required
+            />
+          </div>
         </div>
 
         <div>
           <label className="block text-sm font-semibold text-gray-700 mb-2">
-            <MapPin className="w-4 h-4 inline mr-2" />
             To
           </label>
-          <input
-            type="text"
-            value={formData.destination}
-            onChange={(e) => handleInputChange('destination', e.target.value.toUpperCase())}
-            placeholder="Enter destination airport code, e.g. CDG"
-            className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors duration-200 ${!isUppercase(formData.destination) && formData.destination ? 'border-red-500' : 'border-gray-300'}`}
-            required
-          />
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <MapPin className="w-5 h-5 text-gray-400" />
+            </div>
+            <input
+              type="text"
+              value={formData.destination}
+              onChange={(e) => handleInputChange('destination', e.target.value.toUpperCase())}
+              placeholder="e.g. ORY, MAD, BCN"
+              list="airports"
+              className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors duration-200 ${!isUppercase(formData.destination) && formData.destination ? 'border-red-500' : 'border-gray-300'}`}
+              required
+            />
+          </div>
         </div>
+
+        <datalist id="airports">
+          {POPULAR_AIRPORTS.map(airport => (
+            <option key={airport.code} value={airport.code}>{airport.name}</option>
+          ))}
+        </datalist>
 
         <div>
           <label className="block text-sm font-semibold text-gray-700 mb-2">
-            <Calendar className="w-4 h-4 inline mr-2" />
             Departure Date
           </label>
-          <input
-            type="date"
-            value={formData.date}
-            onChange={(e) => handleInputChange('date', e.target.value)}
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors duration-200"
-            required
-          />
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <Calendar className="w-5 h-5 text-gray-400" />
+            </div>
+            <input
+              type="date"
+              value={formData.date}
+              onChange={(e) => handleInputChange('date', e.target.value)}
+              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors duration-200"
+              required
+            />
+          </div>
         </div>
 
         <div>
           <label className="block text-sm font-semibold text-gray-700 mb-2">
-            <Users className="w-4 h-4 inline mr-2" />
             Number of Adults
           </label>
-          <input
-            type="number"
-            value={formData.adults}
-            onChange={(e) => handleInputChange('adults', parseInt(e.target.value))}
-            min="1"
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors duration-200"
-            required
-          />
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <Users className="w-5 h-5 text-gray-400" />
+            </div>
+            <input
+              type="number"
+              value={formData.adults}
+              onChange={(e) => handleInputChange('adults', parseInt(e.target.value))}
+              min="1"
+              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors duration-200"
+              required
+            />
+          </div>
         </div>
 
         <div>

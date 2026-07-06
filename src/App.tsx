@@ -1,7 +1,7 @@
 import React, { useState, lazy, Suspense } from 'react';
 import { SearchForm, SearchData } from './components/SearchForm';
 import Navigation from './components/Navigation';
-import { Facebook, Linkedin, Phone, Mail } from 'lucide-react';
+import { Facebook, Linkedin, Phone, Mail, Plane, Building2, Users } from 'lucide-react';
 import HotelSearchForm from './components/HotelSearchForm';
 import HotelResults from './components/HotelResults';
 const FlightResults = lazy(() => import('./components/FlightResults').then(module => ({ default: module.FlightResults })));
@@ -43,19 +43,34 @@ function App() {
     setFlights([]);
     setHotels([]);
     try {
+      const payload: any = {
+        origin: searchData.origin,
+        destination: searchData.destination,
+        date: searchData.date,
+        adults: searchData.adults,
+      };
+
+      if (searchData.preferredAirlines && searchData.preferredAirlines.length > 0) {
+        payload.preferredAirlines = searchData.preferredAirlines;
+      }
+
+      if (searchData.stops !== undefined && searchData.stops !== '') {
+        if (searchData.stops === '2+') {
+          payload.stops = 2; // Map '2+' stops to number 2 (supported by backend filtering >=2)
+        } else {
+          const parsedStops = parseInt(searchData.stops, 10);
+          if (!isNaN(parsedStops)) {
+            payload.stops = parsedStops;
+          }
+        }
+      }
+
       const response = await fetch('https://beausejour-backend.vercel.app/search', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          origin: searchData.origin,
-          destination: searchData.destination,
-          date: searchData.date,
-          adults: searchData.adults,
-          preferredAirlines: searchData.preferredAirlines,
-          stops: searchData.stops
-        }),
+        body: JSON.stringify(payload),
       });
       if (!response.ok) {
         throw new Error(`Failed to search flights: ${response.status} ${response.statusText}`);
@@ -101,6 +116,8 @@ function App() {
       const data = await response.json();
       if (data.hotels && Array.isArray(data.hotels)) {
         setHotels(data.hotels);
+      } else if (data.data && Array.isArray(data.data)) {
+        setHotels(data.data);
       } else if (Array.isArray(data)) {
         setHotels(data);
       } else {
@@ -135,17 +152,19 @@ function App() {
         {/* Accueil Section */}
         <section id="accueil" className="min-h-screen flex flex-col items-center justify-center gap-8 pt-20">
           {/* Tabs for switching search type */}
-          <div className="flex gap-4 mb-6">
+          <div className="bg-cyan-950/40 p-1.5 rounded-full flex gap-1 mb-6 backdrop-blur-sm border border-cyan-800/30">
             <button
-              className={`px-4 py-2 rounded-t-lg font-semibold focus:outline-none transition-colors ${searchType === 'flight' ? 'bg-white text-primary shadow' : 'bg-cyan-900 text-cyan-100 hover:bg-cyan-800'}`}
+              className={`px-6 py-2.5 rounded-full font-semibold focus:outline-none transition-all duration-300 text-sm sm:text-base flex items-center gap-2 ${searchType === 'flight' ? 'bg-white text-primary shadow-lg scale-105' : 'text-cyan-100 hover:text-white hover:bg-white/5'}`}
               onClick={() => { setSearchType('flight'); setHasSearched(false); setError(null); }}
             >
+              <Plane className="w-4 h-4" />
               Vols
             </button>
             <button
-              className={`px-4 py-2 rounded-t-lg font-semibold focus:outline-none transition-colors ${searchType === 'hotel' ? 'bg-white text-primary shadow' : 'bg-cyan-900 text-cyan-100 hover:bg-cyan-800'}`}
+              className={`px-6 py-2.5 rounded-full font-semibold focus:outline-none transition-all duration-300 text-sm sm:text-base flex items-center gap-2 ${searchType === 'hotel' ? 'bg-white text-primary shadow-lg scale-105' : 'text-cyan-100 hover:text-white hover:bg-white/5'}`}
               onClick={() => { setSearchType('hotel'); setHasSearched(false); setError(null); }}
             >
+              <Building2 className="w-4 h-4" />
               Hôtels
             </button>
           </div>
@@ -164,28 +183,30 @@ function App() {
           {/* Search Form */}
           <div className="w-full lg:w-auto lg:flex-shrink-0">
             {searchType === 'flight' ? (
-            <SearchForm onSearch={handleSearch} isLoading={isLoading} />
+              <SearchForm onSearch={handleSearch} isLoading={isLoading} />
             ) : (
-              <HotelSearchForm onSubmit={handleHotelSearch} />
+              <HotelSearchForm onSubmit={handleHotelSearch} isLoading={isLoading} />
             )}
           </div>
 
           {/* Results */}
           {hasSearched && (
             <div className="flex-1 w-full lg:max-w-none mt-6">
-              {isLoading && <div className="text-white text-center p-8">Chargement des résultats...</div>}
-              {error && <div className="text-red-500 text-center p-4 bg-white/20 rounded mb-4">{error}</div>}
-              {searchType === 'flight' && !isLoading && !error && (
-              <Suspense fallback={<div className="text-white text-center p-8">Loading results...</div>}>
-                <FlightResults 
-                  flights={flights} 
+              {searchType === 'flight' && (
+                <Suspense fallback={<div className="text-white text-center p-8">Loading results...</div>}>
+                  <FlightResults 
+                    flights={flights} 
+                    isLoading={isLoading} 
+                    error={error} 
+                  />
+                </Suspense>
+              )}
+              {searchType === 'hotel' && (
+                <HotelResults 
+                  hotels={hotels} 
                   isLoading={isLoading} 
                   error={error} 
                 />
-              </Suspense>
-              )}
-              {searchType === 'hotel' && !isLoading && !error && (
-                <HotelResults hotels={hotels} />
               )}
             </div>
           )}
@@ -204,29 +225,41 @@ function App() {
         </section>
 
         {/* À propos Section */}
-        <section id="a-propos" className="min-h-screen flex items-center justify-center">
-          <div className="text-center max-w-4xl mx-auto">
-            <h2 className="text-3xl sm:text-4xl font-bold text-white mb-6">
-              À propos de Beausejour Voyage
-            </h2>
-            <div className="bg-white/10 backdrop-blur-sm p-8 rounded-2xl">
-              <p className="text-lg text-cyan-100 mb-4">
-                Beausejour Voyage est votre partenaire de confiance pour tous vos voyages au Maroc et à l'international.
-              </p>
-              <p className="text-lg text-cyan-100 mb-4">
-                Nous vous proposons les meilleures offres de vols avec un service client 100% marocain.
-              </p>
-              <p className="text-lg text-cyan-100 mb-6">
-                Notre expertise et notre réseau de partenaires nous permettent de vous garantir des prix compétitifs et un service de qualité.
-              </p>
-              <div className="mt-6 border-t border-cyan-100/20 pt-6">
-                <h3 className="text-xl font-semibold text-white mb-4">Rencontrez notre directeur</h3>
-                <div className="flex justify-center items-center gap-4">
+        <section id="a-propos" className="min-h-screen flex items-center justify-center relative py-20">
+          <div className="container mx-auto px-4 max-w-5xl">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-4">
+                À propos de Beausejour Voyage
+              </h2>
+              <div className="w-24 h-1 bg-cyan-400 mx-auto rounded-full"></div>
+            </div>
+            
+            <div className="grid md:grid-cols-2 gap-8 items-center">
+              <div className="bg-white/10 backdrop-blur-md border border-white/20 p-8 rounded-3xl shadow-2xl hover:bg-white/15 transition-all duration-300">
+                <p className="text-lg text-cyan-50 mb-4 leading-relaxed">
+                  <strong className="text-white text-xl">Beausejour Voyage</strong> est votre partenaire de confiance pour tous vos voyages au Maroc et à l'international.
+                </p>
+                <p className="text-lg text-cyan-50 mb-4 leading-relaxed">
+                  Nous vous proposons les meilleures offres de vols avec un service client 100% marocain, axé sur la qualité et la satisfaction.
+                </p>
+                <p className="text-lg text-cyan-50 leading-relaxed">
+                  Notre expertise et notre réseau de partenaires nous permettent de vous garantir des prix compétitifs et un accompagnement de classe mondiale.
+                </p>
+              </div>
+              
+              <div className="bg-gradient-to-br from-cyan-900/80 to-primary/80 backdrop-blur-md border border-white/10 p-8 rounded-3xl shadow-2xl text-center">
+                <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
+                  <Users className="w-10 h-10 text-white" />
+                </div>
+                <h3 className="text-2xl font-bold text-white mb-2">Direction</h3>
+                <p className="text-cyan-100 mb-8">Découvrez l'équipe dirigeante derrière notre succès.</p>
+                
+                <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
                   <a
                     href="https://www.facebook.com/moussab.fatmi.73/"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center justify-center px-5 py-2.5 bg-blue-600 text-white font-bold rounded-lg shadow-md hover:bg-blue-700 transform hover:scale-105 transition-all duration-300"
+                    className="w-full sm:w-auto flex items-center justify-center px-6 py-3 bg-[#1877F2] hover:bg-[#166fe5] text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300"
                   >
                     <Facebook className="w-5 h-5 mr-2" />
                     Facebook
@@ -235,7 +268,7 @@ function App() {
                     href="https://ma.linkedin.com/in/brahim-fatmi-53293b8a"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center justify-center px-5 py-2.5 bg-sky-700 text-white font-bold rounded-lg shadow-md hover:bg-sky-800 transform hover:scale-105 transition-all duration-300"
+                    className="w-full sm:w-auto flex items-center justify-center px-6 py-3 bg-[#0A66C2] hover:bg-[#0958a8] text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300"
                   >
                     <Linkedin className="w-5 h-5 mr-2" />
                     LinkedIn
@@ -247,32 +280,42 @@ function App() {
         </section>
 
         {/* Contact Section */}
-        <section id="contact" className="min-h-screen flex items-center justify-center">
-          <div className="text-center max-w-2xl mx-auto">
-            <h2 className="text-3xl sm:text-4xl font-bold text-white mb-6">
-              Contactez-nous
-            </h2>
-            <div className="bg-white/10 backdrop-blur-sm p-8 rounded-2xl">
-              <p className="text-lg text-cyan-100 mb-4">
-                Notre équipe est à votre disposition pour vous accompagner dans vos projets de voyage.
+        <section id="contact" className="min-h-screen flex items-center justify-center relative py-20">
+          <div className="container mx-auto px-4 max-w-4xl">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-4">
+                Contactez-nous
+              </h2>
+              <div className="w-24 h-1 bg-cyan-400 mx-auto rounded-full mb-6"></div>
+              <p className="text-lg text-cyan-100">
+                Notre équipe est à votre disposition 24h/24 et 7j/7 pour vous accompagner dans vos projets.
               </p>
-              <div className="space-y-3 text-cyan-100 text-left">
-                <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
-                  <a href="tel:+212699922229" className="flex items-center gap-2 hover:text-white transition-colors">
-                    <Phone className="w-4 h-4" />
-                    <strong>Téléphone:</strong> +212 6 99 92 22 29
-                  </a>
-                  <a href="tel:+212536707026" className="flex items-center gap-2 hover:text-white transition-colors">
-                    <Phone className="w-4 h-4" />
-                    <strong>Fix:</strong> 05 36 70 70 26
-                  </a>
+            </div>
+            
+            <div className="grid sm:grid-cols-3 gap-6">
+              <a href="tel:+212699922229" className="bg-white/10 backdrop-blur-md border border-white/20 p-6 rounded-3xl text-center hover:bg-white/20 transform hover:-translate-y-2 transition-all duration-300 shadow-xl group">
+                <div className="w-16 h-16 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-primary/50 transition-colors">
+                  <Phone className="w-8 h-8 text-white" />
                 </div>
-                <a href="mailto:contact@beausejourvoyage.com" className="flex items-center justify-center gap-2 hover:text-white transition-colors">
-                  <Mail className="w-4 h-4" />
-                  <strong>Email:</strong> contact@beausejourvoyage.com
-                </a>
-                <p className="text-center"><strong>Service client:</strong> 24h/24 et 7j/7</p>
-              </div>
+                <h3 className="text-xl font-bold text-white mb-2">Téléphone</h3>
+                <p className="text-cyan-100">+212 6 99 92 22 29</p>
+              </a>
+              
+              <a href="tel:+212536707026" className="bg-white/10 backdrop-blur-md border border-white/20 p-6 rounded-3xl text-center hover:bg-white/20 transform hover:-translate-y-2 transition-all duration-300 shadow-xl group">
+                <div className="w-16 h-16 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-primary/50 transition-colors">
+                  <Phone className="w-8 h-8 text-white" />
+                </div>
+                <h3 className="text-xl font-bold text-white mb-2">Fixe</h3>
+                <p className="text-cyan-100">05 36 70 70 26</p>
+              </a>
+
+              <a href="mailto:contact@beausejourvoyage.com" className="bg-white/10 backdrop-blur-md border border-white/20 p-6 rounded-3xl text-center hover:bg-white/20 transform hover:-translate-y-2 transition-all duration-300 shadow-xl group">
+                <div className="w-16 h-16 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-primary/50 transition-colors">
+                  <Mail className="w-8 h-8 text-white" />
+                </div>
+                <h3 className="text-xl font-bold text-white mb-2">Email</h3>
+                <p className="text-cyan-100 text-sm break-words">contact@beausejourvoyage.com</p>
+              </a>
             </div>
           </div>
         </section>
